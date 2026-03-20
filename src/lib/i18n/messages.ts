@@ -25,6 +25,11 @@ export interface LocaleMessages {
     like: string;
     liked: string;
     thanks: string;
+    googleScholar: string;
+    github: string;
+    cv: string;
+    viewCV: string;
+    downloadCV: string;
   };
   home: {
     about: string;
@@ -75,6 +80,11 @@ const en: LocaleMessages = {
     like: 'Like',
     liked: 'Liked',
     thanks: 'Thanks!',
+    googleScholar: 'Google Scholar',
+    github: 'GitHub',
+    cv: 'CV',
+    viewCV: 'View CV',
+    downloadCV: 'Download CV',
   },
   home: {
     about: 'About',
@@ -125,6 +135,11 @@ const zh: LocaleMessages = {
     like: '点赞',
     liked: '已点赞',
     thanks: '感谢支持！',
+    googleScholar: '谷歌学术',
+    github: 'GitHub',
+    cv: '简历',
+    viewCV: '查看简历',
+    downloadCV: '下载简历',
   },
   home: {
     about: '关于我',

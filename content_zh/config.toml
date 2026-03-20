@@ -1,19 +1,35 @@
 [site]
-title = "刘嘉乐"
-description = "某某大学博士生个人主页。"
-last_updated = "2025年11月18日"
+title = "王家豪"
+description = "哈尔滨工业大学（深圳）本科生个人主页。"
+last_updated = "2026年3月19日"
 
 [author]
-name = "刘嘉乐"
-title = "博士生"
-institution = "某某大学"
+name = "王家豪"
+title = "本科生"
+institution = "哈尔滨工业大学（深圳）"
 
 [social]
-location = "城市，国家"
-location_details = [
-  "理科楼 123 室，",
-  "大学路，城市，国家"
-]
+email = "wjh123king@gmail.com"
+google_scholar = "https://scholar.google.com"
+github = "https://github.com/king-wang123"
+cv = "/cv/cv_zh.pdf"
+
+[features]
+enable_likes = true
+enable_one_page_mode = false
+
+[i18n]
+enabled = true
+locales = ["zh", "en"]
+default_locale = "zh"
+mode = "auto"
+fixed_locale = "zh"
+persist = true
+switcher = true
+
+[i18n.labels]
+zh = "中文"
+en = "English"
 
 [[navigation]]
 title = "关于我"
@@ -26,12 +42,6 @@ title = "论文"
 type = "page"
 target = "publications"
 href = "/publications"
-
-[[navigation]]
-title = "教学"
-type = "page"
-target = "teaching"
-href = "/teaching"
 
 [[navigation]]
 title = "奖项"

@@ -7,13 +7,64 @@ import {
     EnvelopeIcon,
     AcademicCapIcon,
     HeartIcon,
-    MapPinIcon
+    MapPinIcon,
+    DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { MapPinIcon as MapPinSolidIcon, EnvelopeIcon as EnvelopeSolidIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { Github, Linkedin, Pin } from 'lucide-react';
 import type { SiteConfig } from '@/lib/config';
 import { useMessages } from '@/lib/i18n/useMessages';
+
+// Simple tooltip link component for Google Scholar, GitHub, LinkedIn, ORCID
+interface SimpleTooltipLinkProps {
+    link: {
+        name: string;
+        href: string;
+        icon: React.ComponentType<{ className?: string }>;
+    };
+    IconComponent: React.ComponentType<{ className?: string }>;
+    messages: ReturnType<typeof useMessages>;
+}
+
+function SimpleTooltipLink({ link, IconComponent, messages }: SimpleTooltipLinkProps) {
+    const [showTooltip, setShowTooltip] = useState(false);
+    const tooltipText = link.name === 'Google Scholar' ? messages.profile.googleScholar :
+        link.name === 'GitHub' ? messages.profile.github :
+            link.name;
+
+    return (
+        <div className="relative">
+            <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+                className="p-2 sm:p-2 text-neutral-600 dark:text-neutral-400 hover:text-accent transition-colors duration-200 block"
+                aria-label={link.name}
+            >
+                <IconComponent className="h-5 w-5" />
+            </a>
+
+            {/* Simple tooltip */}
+            <AnimatePresence>
+                {showTooltip && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 5, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -5, scale: 0.9 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-neutral-800 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg whitespace-nowrap z-10"
+                    >
+                        {tooltipText}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800"></div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 // Custom ORCID icon component
 const OrcidIcon = ({ className }: { className?: string }) => (
@@ -43,7 +94,9 @@ export default function Profile({ author, social, features, researchInterests }:
     const [isAddressPinned, setIsAddressPinned] = useState(false);
     const [showEmail, setShowEmail] = useState(false);
     const [isEmailPinned, setIsEmailPinned] = useState(false);
-    const [lastClickedTooltip, setLastClickedTooltip] = useState<'email' | 'address' | null>(null);
+    const [lastClickedTooltip, setLastClickedTooltip] = useState<'email' | 'address' | 'cv' | null>(null);
+    const [showCV, setShowCV] = useState(false);
+    const [isCVPinned, setIsCVPinned] = useState(false);
 
     // Check local storage for user's like status
     useEffect(() => {
@@ -101,6 +154,12 @@ export default function Profile({ author, social, features, researchInterests }:
             name: 'LinkedIn',
             href: social.linkedin,
             icon: Linkedin,
+        }] : []),
+        ...(social.cv ? [{
+            name: messages.profile.cv,
+            href: social.cv,
+            icon: DocumentTextIcon,
+            isCV: true,
         }] : []),
     ];
 
@@ -288,17 +347,94 @@ export default function Profile({ author, social, features, researchInterests }:
                             </div>
                         );
                     }
+
+                    // Special handling for CV - opens modal with view and download options
+                    if (link.isCV) {
+                        return (
+                            <div key={link.name} className="relative">
+                                <button
+                                    onMouseEnter={() => {
+                                        if (!isCVPinned) setShowCV(true);
+                                        setLastClickedTooltip('cv');
+                                    }}
+                                    onMouseLeave={() => !isCVPinned && setShowCV(false)}
+                                    onClick={() => {
+                                        setIsCVPinned(!isCVPinned);
+                                        setShowCV(!isCVPinned);
+                                        setLastClickedTooltip('cv');
+                                    }}
+                                    className={`p-2 sm:p-2 transition-colors duration-200 ${isCVPinned
+                                        ? 'text-accent'
+                                        : 'text-neutral-600 dark:text-neutral-400 hover:text-accent'
+                                        }`}
+                                    aria-label={link.name}
+                                >
+                                    <IconComponent className="h-5 w-5" />
+                                </button>
+
+                                {/* CV tooltip */}
+                                <AnimatePresence>
+                                    {(showCV || isCVPinned) && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                                            animate={{ opacity: 1, y: -10, scale: 1 }}
+                                            exit={{ opacity: 0, y: -20, scale: 0.8 }}
+                                            className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full bg-neutral-800 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg max-w-[calc(100vw-2rem)] sm:max-w-none sm:whitespace-nowrap ${lastClickedTooltip === 'cv' ? 'z-20' : 'z-10'
+                                                }`}
+                                            onMouseEnter={() => {
+                                                if (!isCVPinned) setShowCV(true);
+                                                setLastClickedTooltip('cv');
+                                            }}
+                                            onMouseLeave={() => !isCVPinned && setShowCV(false)}
+                                        >
+                                            <div className="text-center">
+                                                <div className="flex items-center justify-center space-x-2 mb-2">
+                                                    <p className="font-semibold">{messages.profile.cv}</p>
+                                                    {!isCVPinned && (
+                                                        <div className="flex items-center space-x-0.5 text-xs text-neutral-400 opacity-60">
+                                                            <Pin className="h-2.5 w-2.5" />
+                                                            <span className="hidden sm:inline">{messages.profile.click}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col space-y-2">
+                                                    <a
+                                                        href={link.href}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center space-x-2 bg-accent hover:bg-accent-dark text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 w-full sm:w-auto"
+                                                    >
+                                                        <DocumentTextIcon className="h-4 w-4" />
+                                                        <span>{messages.profile.viewCV}</span>
+                                                    </a>
+                                                    <a
+                                                        href={link.href}
+                                                        download
+                                                        className="inline-flex items-center justify-center space-x-2 bg-neutral-600 hover:bg-neutral-500 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 w-full sm:w-auto"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                        </svg>
+                                                        <span>{messages.profile.downloadCV}</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800"></div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    }
+
+                    // Simple tooltip for other links (Google Scholar, GitHub, LinkedIn, ORCID)
                     return (
-                        <a
+                        <SimpleTooltipLink
                             key={link.name}
-                            href={link.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 sm:p-2 text-neutral-600 dark:text-neutral-400 hover:text-accent transition-colors duration-200"
-                            aria-label={link.name}
-                        >
-                            <IconComponent className="h-5 w-5" />
-                        </a>
+                            link={link}
+                            IconComponent={IconComponent}
+                            messages={messages}
+                        />
                     );
                 })}
             </div>
