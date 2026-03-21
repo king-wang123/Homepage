@@ -85,10 +85,14 @@ interface ProfileProps {
     researchInterests?: string[];
 }
 
+const LIKE_COUNT_KEY = 'website-like-count';
+const USER_LIKED_KEY = 'website-user-liked';
+
 export default function Profile({ author, social, features, researchInterests }: ProfileProps) {
     const messages = useMessages();
 
     const [hasLiked, setHasLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
     const [showThanks, setShowThanks] = useState(false);
     const [showAddress, setShowAddress] = useState(false);
     const [isAddressPinned, setIsAddressPinned] = useState(false);
@@ -96,13 +100,23 @@ export default function Profile({ author, social, features, researchInterests }:
     const [isEmailPinned, setIsEmailPinned] = useState(false);
     const [lastClickedTooltip, setLastClickedTooltip] = useState<'email' | 'address' | null>(null);
 
-    // Check local storage for user's like status
+    // Check local storage for user's like status and total count
     useEffect(() => {
         if (!features.enable_likes) return;
 
-        const userHasLiked = localStorage.getItem('jiale-website-user-liked');
-        if (userHasLiked === 'true') {
+        const userHasLiked = localStorage.getItem(USER_LIKED_KEY);
+        const hasUserLiked = userHasLiked === 'true';
+        if (hasUserLiked) {
             setHasLiked(true);
+        }
+
+        const storedCount = localStorage.getItem(LIKE_COUNT_KEY);
+        if (storedCount) {
+            setLikeCount(parseInt(storedCount, 10));
+        } else if (hasUserLiked) {
+            // If user has liked but no count stored, initialize to 1
+            setLikeCount(1);
+            localStorage.setItem(LIKE_COUNT_KEY, '1');
         }
     }, [features.enable_likes]);
 
@@ -111,11 +125,19 @@ export default function Profile({ author, social, features, researchInterests }:
         setHasLiked(newLikedState);
 
         if (newLikedState) {
-            localStorage.setItem('jiale-website-user-liked', 'true');
+            // User likes: increment count
+            const newCount = likeCount + 1;
+            setLikeCount(newCount);
+            localStorage.setItem(LIKE_COUNT_KEY, newCount.toString());
+            localStorage.setItem(USER_LIKED_KEY, 'true');
             setShowThanks(true);
             setTimeout(() => setShowThanks(false), 2000);
         } else {
-            localStorage.removeItem('jiale-website-user-liked');
+            // User unlikes: decrement count
+            const newCount = Math.max(0, likeCount - 1);
+            setLikeCount(newCount);
+            localStorage.setItem(LIKE_COUNT_KEY, newCount.toString());
+            localStorage.removeItem(USER_LIKED_KEY);
             setShowThanks(false);
         }
     };
@@ -389,6 +411,9 @@ export default function Profile({ author, social, features, researchInterests }:
                                 <HeartIcon className="h-4 w-4" />
                             )}
                             <span>{hasLiked ? messages.profile.liked : messages.profile.like}</span>
+                            <span className="ml-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-300 rounded-full text-xs font-semibold min-w-[1.25rem] text-center">
+                                {likeCount}
+                            </span>
                         </motion.button>
 
                         {/* Thanks bubble */}
