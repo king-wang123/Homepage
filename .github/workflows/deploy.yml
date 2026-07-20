@@ -1,4 +1,17 @@
-name: Deploy PRISM to GitHub Pages
+name: Build and Deploy to king-wang123.github.io
+
+# Source code lives in this repo (king-wang123/Homepage).
+# The live site is served from the separate repo king-wang123/king-wang123.github.io
+# at the root URL https://king-wang123.github.io/.
+# On every push to main we build the static export and publish it there.
+#
+# One-time setup required (see docs/deployment.md):
+#   1. Create a token that can write to king-wang123/king-wang123.github.io
+#      (fine-grained PAT with "Contents: Read and write", or a classic PAT with "repo").
+#   2. Add it to THIS repo as an Actions secret named DEPLOY_TOKEN
+#      (Settings -> Secrets and variables -> Actions -> New repository secret).
+#   3. In king-wang123.github.io repo: Settings -> Pages ->
+#      Source = "Deploy from a branch", Branch = main / (root).
 
 on:
   push:
@@ -6,15 +19,9 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,24 +33,24 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build site
+      - name: Build static site
         run: npm run build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Add .nojekyll (allow _next folder on GitHub Pages)
+        run: touch out/.nojekyll
+
+      - name: Deploy to king-wang123.github.io
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: ./out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}
+          external_repository: king-wang123/king-wang123.github.io
+          publish_branch: main
+          publish_dir: ./out
+          # Publish a clean, single-commit tree every time so stale build
+          # artifacts (old chunk hashes) never linger and break navigation.
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "deploy: ${{ github.sha }}"

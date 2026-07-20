@@ -2,6 +2,34 @@
 
 This guide is designed for beginners. You don't need complex configurations to deploy your website.
 
+## Current setup (king-wang123): automatic cross-repo deploy
+
+This project's **source code** lives in `king-wang123/Homepage`, while the **live site**
+is served from the separate repo `king-wang123/king-wang123.github.io` at the root URL
+`https://king-wang123.github.io/`.
+
+Automatic deployment is configured in `.github/workflows/deploy.yml`: every push to `main`
+builds the static export and publishes it to the `king-wang123.github.io` repo.
+
+**One-time setup (required for the deploy step to work):**
+
+1. Create a token that can write to `king-wang123/king-wang123.github.io`:
+   - GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens**
+   - Repository access: only `king-wang123.github.io`
+   - Permissions: **Contents → Read and write**
+   - (A classic token with the `repo` scope also works.)
+2. In the **Homepage** repo: Settings → Secrets and variables → Actions → **New repository secret**
+   - Name: `DEPLOY_TOKEN`
+   - Value: the token from step 1
+3. In the **king-wang123.github.io** repo: Settings → Pages → Source = **Deploy from a branch**,
+   Branch = `main` / `(root)`.
+
+After that, pushing to `Homepage`'s `main` (or running the workflow manually via
+Actions → "Build and Deploy to king-wang123.github.io" → Run workflow) will rebuild and
+publish the site automatically.
+
+---
+
 ## Option 1: GitHub Pages
 
 1.  **Build your project**
