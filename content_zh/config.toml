@@ -1,7 +1,7 @@
 [site]
 title = "王家豪"
 description = "哈尔滨工业大学（深圳）本科生个人主页。"
-last_updated = "2026年3月19日"
+last_updated = "2026年7月20日"
 
 [author]
 name = "王家豪"
@@ -48,12 +48,6 @@ title = "奖项"
 type = "page"
 target = "awards"
 href = "/awards"
-
-[[navigation]]
-title = "服务"
-type = "page"
-target = "services"
-href = "/services"
 
 [[navigation]]
 title = "简历"
