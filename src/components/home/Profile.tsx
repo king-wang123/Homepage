@@ -85,8 +85,14 @@ interface ProfileProps {
     researchInterests?: string[];
 }
 
-const LIKE_COUNT_KEY = 'website-like-count';
+// Cross-visitor like counter backed by a free, no-auth counter service (Abacus).
+// The /hit endpoint only ever increments and returns the accumulated total, which
+// matches the "increment-only, never decrement" behavior we want.
+const LIKE_COUNT_CACHE_KEY = 'website-like-count';
 const USER_LIKED_KEY = 'website-user-liked';
+const LIKE_API_BASE = 'https://abacus.jasoncameron.dev';
+const LIKE_NAMESPACE = 'king-wang123-github-io';
+const LIKE_KEY = 'homepage-likes';
 
 export default function Profile({ author, social, features, researchInterests }: ProfileProps) {
     const messages = useMessages();
@@ -100,46 +106,65 @@ export default function Profile({ author, social, features, researchInterests }:
     const [isEmailPinned, setIsEmailPinned] = useState(false);
     const [lastClickedTooltip, setLastClickedTooltip] = useState<'email' | 'address' | null>(null);
 
-    // Check local storage for user's like status and total count
+    // Load the cached count immediately, then sync with the shared counter.
     useEffect(() => {
         if (!features.enable_likes) return;
 
-        const userHasLiked = localStorage.getItem(USER_LIKED_KEY);
-        const hasUserLiked = userHasLiked === 'true';
-        if (hasUserLiked) {
+        if (localStorage.getItem(USER_LIKED_KEY) === 'true') {
             setHasLiked(true);
         }
 
-        const storedCount = localStorage.getItem(LIKE_COUNT_KEY);
-        if (storedCount) {
-            setLikeCount(parseInt(storedCount, 10));
-        } else if (hasUserLiked) {
-            // If user has liked but no count stored, initialize to 1
-            setLikeCount(1);
-            localStorage.setItem(LIKE_COUNT_KEY, '1');
+        const cached = localStorage.getItem(LIKE_COUNT_CACHE_KEY);
+        if (cached) {
+            const parsed = parseInt(cached, 10);
+            if (!Number.isNaN(parsed)) setLikeCount(parsed);
         }
+
+        let aborted = false;
+        fetch(`${LIKE_API_BASE}/get/${LIKE_NAMESPACE}/${LIKE_KEY}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (!aborted && data && typeof data.value === 'number') {
+                    setLikeCount(data.value);
+                    localStorage.setItem(LIKE_COUNT_CACHE_KEY, String(data.value));
+                }
+            })
+            .catch(() => {
+                /* offline / service unavailable: keep cached value */
+            });
+
+        return () => {
+            aborted = true;
+        };
     }, [features.enable_likes]);
 
     const handleLike = () => {
-        const newLikedState = !hasLiked;
-        setHasLiked(newLikedState);
+        // Increment-only: every click adds 1, keeps the liked state and effect,
+        // no un-like / no decrement, no identity check.
+        setHasLiked(true);
+        localStorage.setItem(USER_LIKED_KEY, 'true');
+        setShowThanks(true);
+        setTimeout(() => setShowThanks(false), 2000);
 
-        if (newLikedState) {
-            // User likes: increment count
-            const newCount = likeCount + 1;
-            setLikeCount(newCount);
-            localStorage.setItem(LIKE_COUNT_KEY, newCount.toString());
-            localStorage.setItem(USER_LIKED_KEY, 'true');
-            setShowThanks(true);
-            setTimeout(() => setShowThanks(false), 2000);
-        } else {
-            // User unlikes: decrement count
-            const newCount = Math.max(0, likeCount - 1);
-            setLikeCount(newCount);
-            localStorage.setItem(LIKE_COUNT_KEY, newCount.toString());
-            localStorage.removeItem(USER_LIKED_KEY);
-            setShowThanks(false);
-        }
+        // Optimistic local increment for instant feedback.
+        setLikeCount((prev) => {
+            const next = prev + 1;
+            localStorage.setItem(LIKE_COUNT_CACHE_KEY, String(next));
+            return next;
+        });
+
+        // Persist to the shared counter and reconcile with its authoritative total.
+        fetch(`${LIKE_API_BASE}/hit/${LIKE_NAMESPACE}/${LIKE_KEY}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (data && typeof data.value === 'number') {
+                    setLikeCount(data.value);
+                    localStorage.setItem(LIKE_COUNT_CACHE_KEY, String(data.value));
+                }
+            })
+            .catch(() => {
+                /* offline / service unavailable: keep optimistic local value */
+            });
     };
 
     const socialLinks = [
