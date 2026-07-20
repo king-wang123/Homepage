@@ -62,6 +62,10 @@ export function parseBibTeX(bibtexContent: string, locale?: string): Publication
     // Parse preview field (remove braces if present)
     const preview = tags.preview?.replace(/[{}]/g, '');
 
+    // Parse CCF rank field (A/B/C), normalized to uppercase
+    const ccfRaw = tags.ccf?.replace(/[{}]/g, '').trim().toUpperCase();
+    const ccf = (ccfRaw === 'A' || ccfRaw === 'B' || ccfRaw === 'C') ? (ccfRaw as 'A' | 'B' | 'C') : undefined;
+
     // Create publication object
     const publication: Publication = {
       id: entry.citationKey || tags.id || `pub-${Date.now()}-${index}`,
@@ -88,9 +92,10 @@ export function parseBibTeX(bibtexContent: string, locale?: string): Publication
       description: cleanBibTeXString(tags.description || tags.note),
       selected,
       preview,
+      ccf,
 
       // Store original BibTeX (excluding custom fields)
-      bibtex: reconstructBibTeX(entry, ['selected', 'preview', 'description', 'keywords', 'code']),
+      bibtex: reconstructBibTeX(entry, ['selected', 'preview', 'description', 'keywords', 'code', 'ccf']),
     };
 
     // Clean up undefined fields

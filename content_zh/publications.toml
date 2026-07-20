@@ -4,6 +4,20 @@ description = "我的研究工作合集。"
 source = "publications.bib"
 
 [[publications]]
+title = "Sufficiency-guided Continuous Adaptive Reasoning"
+authors = ["Jiahao Wang", "Bingyu Liang", "Chenhao Hu", "Longhui Zhang", "Xuebo Liu", "Min Zhang", "Jing Li", "Xuelong Li"]
+venue = "ICML 2026"
+year = "2026"
+selected = true
+
+[[publications]]
+title = "Bridging Functional Correctness and Runtime Efficiency Gaps in LLM-Based Code Translation"
+authors = ["Longhui Zhang", "Jiahao Wang", "Chenhao Hu", "Bingyu Liang", "Jing Li", "Min Zhang"]
+venue = "ICML 2026"
+year = "2026"
+selected = true
+
+[[publications]]
 title = "Progressive Code Acceleration Through Bidirectional Tree Editing"
 authors = ["Longhui Zhang", "Jiahao Wang", "Meishan Zhang", "GaoXiong Cao", "Ensheng Shi", "mayuchi", "Jun Yu", "Honghai LIU", "Jing Li", "Min Zhang"]
 venue = "ACL 2025"

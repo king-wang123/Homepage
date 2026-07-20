@@ -229,9 +229,16 @@ export default function PublicationsList({ config, publications, embedded = fals
                                             </span>
                                         ))}
                                     </p>
-                                    <p className="text-sm font-medium text-neutral-800 dark:text-neutral-600 mb-3">
-                                        {pub.journal || pub.conference} {pub.year}
-                                    </p>
+                                    <div className="flex items-center flex-wrap gap-2 mb-3">
+                                        <p className="text-sm font-medium text-neutral-800 dark:text-neutral-600">
+                                            {pub.journal || pub.conference} {pub.year}
+                                        </p>
+                                        {pub.ccf && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20">
+                                                CCF {pub.ccf}
+                                            </span>
+                                        )}
+                                    </div>
 
                                     {pub.description && (
                                         <p className="text-sm text-neutral-600 dark:text-neutral-500 mb-4 line-clamp-3">

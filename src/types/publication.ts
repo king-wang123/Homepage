@@ -36,6 +36,7 @@ export interface Publication {
   impactFactor?: number;
   quartile?: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   bibtex?: string;
+  ccf?: 'A' | 'B' | 'C';
   venue?: string;
   location?: string;
   awards?: string[];
