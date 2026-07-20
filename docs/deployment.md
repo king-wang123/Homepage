@@ -2,31 +2,24 @@
 
 This guide is designed for beginners. You don't need complex configurations to deploy your website.
 
-## Current setup (king-wang123): automatic cross-repo deploy
+## Current setup (king-wang123): single-repo automatic deploy
 
-This project's **source code** lives in `king-wang123/Homepage`, while the **live site**
-is served from the separate repo `king-wang123/king-wang123.github.io` at the root URL
-`https://king-wang123.github.io/`.
+The live site is served from `king-wang123/king-wang123.github.io` at the root URL
+`https://king-wang123.github.io/`. As of the migration, **that repo now holds BOTH the
+Next.js source code AND the site**, and builds/deploys itself via GitHub Actions using the
+built-in `GITHUB_TOKEN` — **no personal access token (PAT) is required**.
 
-Automatic deployment is configured in `.github/workflows/deploy.yml`: every push to `main`
-builds the static export and publishes it to the `king-wang123.github.io` repo.
+The workflow lives in the `king-wang123.github.io` repo at `.github/workflows/deploy.yml`:
+every push to `main` builds the static export and publishes it to GitHub Pages.
 
-**One-time setup (required for the deploy step to work):**
+**One-time setup (already done once):**
 
-1. Create a token that can write to `king-wang123/king-wang123.github.io`:
-   - GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens**
-   - Repository access: only `king-wang123.github.io`
-   - Permissions: **Contents → Read and write**
-   - (A classic token with the `repo` scope also works.)
-2. In the **Homepage** repo: Settings → Secrets and variables → Actions → **New repository secret**
-   - Name: `DEPLOY_TOKEN`
-   - Value: the token from step 1
-3. In the **king-wang123.github.io** repo: Settings → Pages → Source = **Deploy from a branch**,
-   Branch = `main` / `(root)`.
+- In the `king-wang123.github.io` repo: Settings → Pages → Build and deployment →
+  Source = **GitHub Actions**.
 
-After that, pushing to `Homepage`'s `main` (or running the workflow manually via
-Actions → "Build and Deploy to king-wang123.github.io" → Run workflow) will rebuild and
-publish the site automatically.
+After that, editing the site is simply: clone `king-wang123.github.io`, make changes,
+`git push` to `main` — the site rebuilds and redeploys automatically. (This `Homepage`
+repo is kept only as an earlier source backup and no longer deploys anything.)
 
 ---
 
